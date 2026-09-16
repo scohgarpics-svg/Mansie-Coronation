@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mansie Coronation SMS Receipt System</title>
+<style>
+body{font-family:Arial;margin:0;background:#f3f3f3;color:#222}.wrap{max-width:850px;margin:auto;padding:15px}
+header{background:#f28c00;color:white;text-align:center;padding:22px;border-radius:15px 15px 0 0}
+main{background:white;padding:20px;border-radius:0 0 15px 15px;box-shadow:0 3px 15px #0002}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}label{font-weight:bold;display:block;margin-bottom:5px}
+input,select,textarea{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccc;border-radius:8px;font-size:16px}
+.full{grid-column:1/-1}button,a{display:inline-block;padding:12px 18px;border:0;border-radius:8px;font-weight:bold;text-decoration:none;cursor:pointer;margin:12px 6px 0 0}
+.primary{background:#f28c00;color:#fff}.dark{background:#333;color:#fff}.green{background:#198754;color:#fff}
+.receipt{margin-top:25px;padding:18px;background:#fff7eb;border:2px solid #f28c00;border-radius:12px}
+.row{display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #ead7bd}.amount{font-size:24px;font-weight:bold;color:#c66d00}
+.notice{background:#fff3cd;padding:12px;border-radius:8px;margin:15px 0;line-height:1.5}
+.hidden{display:none}@media(max-width:600px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.row{flex-direction:column;gap:3px}button,a{width:100%;text-align:center;box-sizing:border-box}}
+@media print{.form,.notice,.actions,.note,header{display:none!important}main{box-shadow:none}.receipt{margin:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<h1>MANSIE DIVISIONAL COUNCIL</h1>
+<h3>Annual Yam Festival & Coronation</h3>
+<p>2nd–4th October 2026 | Coronation: 4th October 2026</p>
+</header>
+<main>
+<section class="form">
+<h2>Contribution Entry & SMS Receipt</h2>
+<div class="notice">Enter the contributor's details. The system creates a receipt number and prepares a personalized SMS.</div>
+<div class="grid">
+<div><label>Name *</label><input id="name" placeholder="Contributor's name"></div>
+<div><label>Phone Number *</label><input id="phone" type="tel" placeholder="0241234567"></div>
+<div><label>Amount (GH¢) *</label><input id="amount" type="number" min="0" step=".01"></div>
+<div><label>Location</label><input id="location" placeholder="e.g. Techiman"></div>
+<div><label>Status</label><select id="status"><option>Individual</option><option>Chief</option><option>Dignity</option><option>Church</option><option>Chairman</option><option>Association</option><option>Town</option></select></div>
+<div><label>Payment Method</label><select id="method"><option>Cash</option><option>Mobile Money</option><option>Bank Transfer</option><option>Cheque</option><option>Other</option></select></div>
+<div><label>Collected By</label><input id="collector" placeholder="Collector's name"></div>
+<div><label>Date</label><input id="date" type="date" value="2026-10-04"></div>
+</div>
+<div class="actions"><button class="primary" onclick="generate()">Generate Receipt</button><button class="dark" onclick="clearForm()">Clear</button></div>
+</section>
+
+<section id="receipt" class="receipt hidden">
+<h2>Contribution Receipt</h2>
+<div class="row"><b>Receipt No.</b><span id="rno"></span></div>
+<div class="row"><b>Date</b><span id="rdate"></span></div>
+<div class="row"><b>Name</b><span id="rname"></span></div>
+<div class="row"><b>Phone</b><span id="rphone"></span></div>
+<div class="row"><b>Amount</b><span id="ramount" class="amount"></span></div>
+<div class="row"><b>Location</b><span id="rlocation"></span></div>
+<div class="row"><b>Status</b><span id="rstatus"></span></div>
+<div class="row"><b>Payment Method</b><span id="rmethod"></span></div>
+<div class="row"><b>Collected By</b><span id="rcollector"></span></div>
+<h3>SMS Message</h3>
+<textarea id="sms" rows="11" readonly></textarea>
+<div class="actions">
+<a id="smslink" class="green" href="#">Open SMS</a>
+<button class="dark" onclick="copySMS()">Copy SMS</button>
+<button class="primary" onclick="window.print()">Print Receipt</button>
+</div>
+<p id="msg"></p>
+</section>
+<p class="note"><b>Note:</b> The Open SMS button opens your messaging application with the message prepared. You still press Send yourself.</p>
+</main>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+function phoneNumber(p){p=p.trim().replace(/[\s()\-]/g,'');if(p.startsWith('00'))p='+'+p.slice(2);if(p.startsWith('0')&&p.length===10)p='+233'+p.slice(1);if(!p.startsWith('+'))p='+'+p;return p}
+function dateText(v){return new Date(v+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'})}
+function receiptNo(){let n=+(localStorage.getItem('mansieCounter')||0)+1;localStorage.setItem('mansieCounter',n);return 'COR-'+String(n).padStart(4,'0')}
+function generate(){
+ let name=$('name').value.trim(), raw=$('phone').value.trim(), amount=+$('amount').value;
+ if(!name||!raw||!amount||amount<=0){alert('Please enter Name, Phone Number and a valid Amount.');return}
+ let phone=phoneNumber(raw), no=receiptNo(), date=$('date').value||'2026-10-04';
+ let amt='GH¢'+amount.toLocaleString('en-GH',{minimumFractionDigits:2,maximumFractionDigits:2});
+ let message=`Dear ${name},
+
+Thank you very much for your generous contribution of ${amt} towards the Annual Yam Festival and Coronation of Nana Gyintadua Kwame Siakwan III, Mansiehene and Akwamuhene of Mo Traditional Council.
+
+Receipt No.: ${no}
+Date: ${dateText(date)}
+Payment Method: ${$('method').value}
+
+Your support is highly appreciated and will contribute greatly to the success of the celebration.
+
+Mansie Divisional Council
+Annual Yam Festival & Coronation
+2nd–4th October 2026`;
+$('rno').textContent=no;$('rdate').textContent=dateText(date);$('rname').textContent=name;$('rphone').textContent=phone;$('ramount').textContent=amt;
+$('rlocation').textContent=$('location').value||'Not specified';$('rstatus').textContent=$('status').value;$('rmethod').textContent=$('method').value;$('rcollector').textContent=$('collector').value||'Not specified';
+$('sms').value=message;$('smslink').href='sms:'+encodeURIComponent(phone)+'?body='+encodeURIComponent(message);
+$('receipt').classList.remove('hidden');$('receipt').scrollIntoView({behavior:'smooth'});
+}
+async function copySMS(){try{await navigator.clipboard.writeText($('sms').value);$('msg').textContent='SMS copied successfully.'}catch(e){$('sms').select();document.execCommand('copy');$('msg').textContent='SMS copied successfully.'}}
+function clearForm(){['name','phone','amount','location','collector'].forEach(x=>$(x).value='');$('date').value='2026-10-04';$('status').value='Individual';$('method').value='Cash';$('receipt').classList.add('hidden')}
+</script>
+</body>
+</html>
