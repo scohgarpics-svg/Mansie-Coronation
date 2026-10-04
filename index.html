@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mansie Coronation SMS Receipt System</title>
+<title>Mansie Coronation Contribution & SMS System</title>
 <style>
-body{font-family:Arial;margin:0;background:#f3f3f3;color:#222}.wrap{max-width:850px;margin:auto;padding:15px}
-header{background:#f28c00;color:white;text-align:center;padding:22px;border-radius:15px 15px 0 0}
-main{background:white;padding:20px;border-radius:0 0 15px 15px;box-shadow:0 3px 15px #0002}
+body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f3f3f3;color:#222}.wrap{max-width:900px;margin:auto;padding:15px}
+header{background:#f28c00;color:#fff;text-align:center;padding:22px;border-radius:15px 15px 0 0}header h1{margin:0 0 6px;font-size:28px}header h3{margin:5px 0}
+main{background:#fff;padding:20px;border-radius:0 0 15px 15px;box-shadow:0 3px 15px #0002}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}label{font-weight:bold;display:block;margin-bottom:5px}
-input,select,textarea{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccc;border-radius:8px;font-size:16px}
-.full{grid-column:1/-1}button,a{display:inline-block;padding:12px 18px;border:0;border-radius:8px;font-weight:bold;text-decoration:none;cursor:pointer;margin:12px 6px 0 0}
-.primary{background:#f28c00;color:#fff}.dark{background:#333;color:#fff}.green{background:#198754;color:#fff}
-.receipt{margin-top:25px;padding:18px;background:#fff7eb;border:2px solid #f28c00;border-radius:12px}
-.row{display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #ead7bd}.amount{font-size:24px;font-weight:bold;color:#c66d00}
-.notice{background:#fff3cd;padding:12px;border-radius:8px;margin:15px 0;line-height:1.5}
-.hidden{display:none}@media(max-width:600px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.row{flex-direction:column;gap:3px}button,a{width:100%;text-align:center;box-sizing:border-box}}
-@media print{.form,.notice,.actions,.note,header{display:none!important}main{box-shadow:none}.receipt{margin:0}}
+input,select,textarea{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccc;border-radius:8px;font-size:16px}textarea{line-height:1.45}
+button,a{display:inline-block;padding:12px 18px;border:0;border-radius:8px;font-weight:bold;text-decoration:none;cursor:pointer;margin:12px 6px 0 0;font-size:15px}
+.primary{background:#f28c00;color:#fff}.dark{background:#333;color:#fff}.green{background:#198754;color:#fff}.blue{background:#0d6efd;color:#fff}.disabled{opacity:.55;pointer-events:none}
+.receipt{margin-top:25px;padding:18px;background:#fff7eb;border:2px solid #f28c00;border-radius:12px}.row{display:flex;justify-content:space-between;gap:15px;padding:8px;border-bottom:1px solid #ead7bd}.amount{font-size:24px;font-weight:bold;color:#c66d00}
+.notice{background:#fff3cd;padding:12px;border-radius:8px;margin:15px 0;line-height:1.5}.success{background:#d1e7dd;color:#0f5132;padding:12px;border-radius:8px}.error{background:#f8d7da;color:#842029;padding:12px;border-radius:8px}.pending{background:#cff4fc;color:#055160;padding:12px;border-radius:8px}
+.hidden{display:none}.small{font-size:13px;color:#666}.statusbox{margin-top:12px}.actions{display:flex;flex-wrap:wrap;gap:4px}
+@media(max-width:600px){.grid{grid-template-columns:1fr}.row{flex-direction:column;gap:3px}.actions button,.actions a{width:100%;text-align:center;box-sizing:border-box}}
+@media print{.form,.notice,.actions,.note,.statusbox,header{display:none!important}main{box-shadow:none}.receipt{margin:0}}
 </style>
 </head>
 <body>
@@ -29,12 +29,12 @@ input,select,textarea{width:100%;box-sizing:border-box;padding:12px;border:1px s
 <main>
 <section class="form">
 <h2>Contribution Entry & SMS Receipt</h2>
-<div class="notice">Enter the contributor's details. The system creates a receipt number and prepares a personalized SMS.</div>
+<div class="notice"><b>Integrated system:</b> enter the contributor's details, generate the receipt, save the contribution to the secure Supabase database, and send the personalized SMS through Arkesel.</div>
 <div class="grid">
-<div><label>Name *</label><input id="name" placeholder="Contributor's name"></div>
-<div><label>Phone Number *</label><input id="phone" type="tel" placeholder="0241234567"></div>
-<div><label>Amount (GH¢) *</label><input id="amount" type="number" min="0" step=".01"></div>
-<div><label>Location</label><input id="location" placeholder="e.g. Techiman"></div>
+<div><label>Name *</label><input id="name" placeholder="Contributor's name" autocomplete="name"></div>
+<div><label>Phone Number *</label><input id="phone" type="tel" placeholder="0241234567" autocomplete="tel"></div>
+<div><label>Amount (GH¢) *</label><input id="amount" type="number" min="0" step=".01" inputmode="decimal"></div>
+<div><label>Location</label><input id="location" placeholder="e.g. Mansie, Techiman"></div>
 <div><label>Status</label><select id="status"><option>Individual</option><option>Chief</option><option>Dignity</option><option>Church</option><option>Chairman</option><option>Association</option><option>Town</option></select></div>
 <div><label>Payment Method</label><select id="method"><option>Cash</option><option>Mobile Money</option><option>Bank Transfer</option><option>Cheque</option><option>Other</option></select></div>
 <div><label>Collected By</label><input id="collector" placeholder="Collector's name"></div>
@@ -55,47 +55,70 @@ input,select,textarea{width:100%;box-sizing:border-box;padding:12px;border:1px s
 <div class="row"><b>Payment Method</b><span id="rmethod"></span></div>
 <div class="row"><b>Collected By</b><span id="rcollector"></span></div>
 <h3>SMS Message</h3>
-<textarea id="sms" rows="11" readonly></textarea>
+<textarea id="sms" rows="12" readonly></textarea>
 <div class="actions">
-<a id="smslink" class="green" href="#">Open SMS</a>
+<button id="sendBtn" class="blue" onclick="sendViaArkesel()">SEND SMS VIA ARKESEL</button>
+<a id="smslink" class="green" href="#">Open SMS App</a>
 <button class="dark" onclick="copySMS()">Copy SMS</button>
 <button class="primary" onclick="window.print()">Print Receipt</button>
 </div>
-<p id="msg"></p>
+<div id="msg" class="statusbox"></div>
 </section>
-<p class="note"><b>Note:</b> The Open SMS button opens your messaging application with the message prepared. You still press Send yourself.</p>
+<p class="note"><b>How it works:</b> Generate Receipt → Send SMS via Arkesel. The contribution is saved in Supabase when the SMS transaction is submitted. The Arkesel API key is kept on the server and is never placed in this public website.</p>
 </main>
 </div>
 <script>
+const SUPABASE_FUNCTION_URL='https://dgvonlxxyjbdpzfxvje.supabase.co/functions/v1/send-arkesel-sms';
+const SENDER_ID='Mansie';
 const $=id=>document.getElementById(id);
-function phoneNumber(p){p=p.trim().replace(/[\s()\-]/g,'');if(p.startsWith('00'))p='+'+p.slice(2);if(p.startsWith('0')&&p.length===10)p='+233'+p.slice(1);if(!p.startsWith('+'))p='+'+p;return p}
+let current=null;
+
+function phoneNumber(p){
+ p=p.trim().replace(/[\s()\-]/g,'');
+ if(p.startsWith('00'))p='+'+p.slice(2);
+ if(p.startsWith('0')&&p.length===10)p='+233'+p.slice(1);
+ if(/^233\d{9}$/.test(p))p='+'+p;
+ if(!p.startsWith('+'))p='+'+p;
+ return p;
+}
 function dateText(v){return new Date(v+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'})}
 function receiptNo(){let n=+(localStorage.getItem('mansieCounter')||0)+1;localStorage.setItem('mansieCounter',n);return 'COR-'+String(n).padStart(4,'0')}
+function showStatus(type,text){$('msg').className='statusbox '+type;$('msg').textContent=text}
 function generate(){
  let name=$('name').value.trim(), raw=$('phone').value.trim(), amount=+$('amount').value;
  if(!name||!raw||!amount||amount<=0){alert('Please enter Name, Phone Number and a valid Amount.');return}
- let phone=phoneNumber(raw), no=receiptNo(), date=$('date').value||'2026-10-04';
+ let phone=phoneNumber(raw);
+ if(!/^\+233\d{9}$/.test(phone)){alert('Please enter a valid Ghana phone number, e.g. 0241234567.');return}
+ let no=receiptNo(), date=$('date').value||'2026-10-04';
  let amt='GH¢'+amount.toLocaleString('en-GH',{minimumFractionDigits:2,maximumFractionDigits:2});
- let message=`Dear ${name},
-
-Thank you very much for your generous contribution of ${amt} towards the Annual Yam Festival and Coronation of Nana Gyintadua Kwame Siakwan III, Mansiehene and Akwamuhene of Mo Traditional Council.
-
-Receipt No.: ${no}
-Date: ${dateText(date)}
-Payment Method: ${$('method').value}
-
-Your support is highly appreciated and will contribute greatly to the success of the celebration.
-
-Mansie Divisional Council
-Annual Yam Festival & Coronation
-2nd–4th October 2026`;
-$('rno').textContent=no;$('rdate').textContent=dateText(date);$('rname').textContent=name;$('rphone').textContent=phone;$('ramount').textContent=amt;
-$('rlocation').textContent=$('location').value||'Not specified';$('rstatus').textContent=$('status').value;$('rmethod').textContent=$('method').value;$('rcollector').textContent=$('collector').value||'Not specified';
-$('sms').value=message;$('smslink').href='sms:'+encodeURIComponent(phone)+'?body='+encodeURIComponent(message);
-$('receipt').classList.remove('hidden');$('receipt').scrollIntoView({behavior:'smooth'});
+ let message=`Dear ${name},\n\nThank you very much for your generous contribution of ${amt} towards the Annual Yam Festival and Coronation of Nana Gyintadua Kwame Siakwan III, Mansiehene and Akwamuhene of Mo Traditional Council.\n\nReceipt No.: ${no}\nDate: ${dateText(date)}\nPayment Method: ${$('method').value}\n\nYour support is highly appreciated and will contribute greatly to the success of the celebration.\n\nMansie Divisional Council\nAnnual Yam Festival & Coronation\n2nd–4th October 2026`;
+ current={receiptNo:no,date,name,phone,amount,amountText:amt,location:$('location').value.trim(),status:$('status').value,paymentMethod:$('method').value,collectedBy:$('collector').value.trim(),message};
+ $('rno').textContent=no;$('rdate').textContent=dateText(date);$('rname').textContent=name;$('rphone').textContent=phone;$('ramount').textContent=amt;
+ $('rlocation').textContent=current.location||'Not specified';$('rstatus').textContent=current.status;$('rmethod').textContent=current.paymentMethod;$('rcollector').textContent=current.collectedBy||'Not specified';
+ $('sms').value=message;$('smslink').href='sms:'+encodeURIComponent(phone)+'?body='+encodeURIComponent(message);
+ $('sendBtn').disabled=false;$('sendBtn').textContent='SEND SMS VIA ARKESEL';$('sendBtn').classList.remove('disabled');
+ $('receipt').classList.remove('hidden');showStatus('pending','Receipt generated. Review the details, then tap SEND SMS VIA ARKESEL.');$('receipt').scrollIntoView({behavior:'smooth'});
 }
-async function copySMS(){try{await navigator.clipboard.writeText($('sms').value);$('msg').textContent='SMS copied successfully.'}catch(e){$('sms').select();document.execCommand('copy');$('msg').textContent='SMS copied successfully.'}}
-function clearForm(){['name','phone','amount','location','collector'].forEach(x=>$(x).value='');$('date').value='2026-10-04';$('status').value='Individual';$('method').value='Cash';$('receipt').classList.add('hidden')}
+
+async function sendViaArkesel(){
+ if(!current){alert('Generate the receipt first.');return}
+ const btn=$('sendBtn');btn.disabled=true;btn.textContent='SENDING SMS…';btn.classList.add('disabled');showStatus('pending','Sending SMS and saving the contribution…');
+ try{
+  const response=await fetch(SUPABASE_FUNCTION_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+   receipt_no:current.receiptNo,name:current.name,phone:current.phone,amount:current.amount,location:current.location,status:current.status,payment_method:current.paymentMethod,collected_by:current.collectedBy,date:current.date,message:current.message,sender:SENDER_ID
+  })});
+  const result=await response.json();
+  if(!response.ok||!result.success){throw new Error(result.error||result.result?.message||'Arkesel did not accept the SMS request.');}
+  btn.textContent='SMS SENT ✓';btn.classList.remove('disabled');
+  showStatus('success',`SMS sent successfully to ${current.name}. Receipt ${current.receiptNo} has been saved in Supabase.`);
+ }catch(error){
+  btn.disabled=false;btn.classList.remove('disabled');btn.textContent='RETRY SMS';
+  showStatus('error','SMS was not sent: '+error.message);
+ }
+}
+
+async function copySMS(){try{await navigator.clipboard.writeText($('sms').value);showStatus('success','SMS copied successfully.')}catch(e){$('sms').select();document.execCommand('copy');showStatus('success','SMS copied successfully.')}}
+function clearForm(){['name','phone','amount','location','collector'].forEach(x=>$(x).value='');$('date').value='2026-10-04';$('status').value='Individual';$('method').value='Cash';$('receipt').classList.add('hidden');$('msg').textContent='';current=null}
 </script>
 </body>
 </html>
